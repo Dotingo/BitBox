@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.devtoolsKsp)
     alias(libs.plugins.daggerHilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -47,6 +48,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.datastore.preferences)

@@ -2,6 +2,7 @@ package dev.dotingo.bitbox.model
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -10,5 +11,9 @@ interface AuthApi {
 
     @POST("/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<Void>
+
+    @GET("/storages")
+    suspend fun getStorages(): Response<List<Storage>>
+
 
 }

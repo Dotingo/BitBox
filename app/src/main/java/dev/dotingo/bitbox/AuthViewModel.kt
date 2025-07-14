@@ -1,6 +1,7 @@
 package dev.dotingo.bitbox
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,20 +24,30 @@ class AuthViewModel @Inject constructor(
     private val _registerResult = MutableStateFlow<String?>(null)
     val registerResult: StateFlow<String?> = _registerResult
 
+    private val _authSuccess = MutableStateFlow(false)
+    val authSuccess: StateFlow<Boolean> = _authSuccess
+
     fun register(login: String, email: String, password: String, role: String = "user") {
         viewModelScope.launch {
             try {
                 val request = RegisterRequest(login, email, password, role)
-                val response = ApiClient.authApi.register(request)
+                val response = authApi.register(request)
 
                 if (response.isSuccessful) {
-                    val cookies = response.headers()["Set-Cookie"]
-                    _registerResult.value = if (cookies != null) {
-                        "Успешная регистрация. Cookie: $cookies"
+                    val cookies = response.headers().values("Set-Cookie")
+                    val accessToken =
+                        cookies.find { it.startsWith("accessToken=") }?.substringBefore(";")
+                    val refreshToken =
+                        cookies.find { it.startsWith("refreshToken=") }?.substringBefore(";")
+                    val cookieHeader = listOfNotNull(accessToken, refreshToken).joinToString("; ")
+
+                    if (cookieHeader.isNotBlank()) {
+                        tokenStore.saveCookie(cookieHeader)
+                        _registerResult.value = "Успешная регистрация"
+                        _authSuccess.value = true
                     } else {
-                        "Успешная регистрация. Cookie не найден."
+                        _registerResult.value = "Ошибка: токены не найдены"
                     }
-                    // Можно сохранить cookie токены, если нужно
                 } else {
                     val error = response.errorBody()?.string()
                     _registerResult.value = "Ошибка: $error"
@@ -47,7 +58,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-
     private val _loginResult = MutableStateFlow<String?>(null)
     val loginResult: StateFlow<String?> = _loginResult
 
@@ -56,12 +66,16 @@ class AuthViewModel @Inject constructor(
             try {
                 val response = authApi.login(LoginRequest(email, password))
                 if (response.isSuccessful) {
-                    val cookie = response.headers()["Set-Cookie"]
-                    if (!cookie.isNullOrBlank()) {
-                        tokenStore.saveCookie(cookie)
+                    val cookies = response.headers().values("Set-Cookie")
+
+                    val cookieHeader = cookies.joinToString(separator = "; ") { it.substringBefore(";") }
+
+                    if (cookieHeader.isNotBlank()) {
+                        tokenStore.saveCookie(cookieHeader)
+                        _authSuccess.value = true
                         _loginResult.value = "Вход успешен"
                     } else {
-                        _loginResult.value = "Cookie не найден"
+                        _loginResult.value = "Ошибка входа: токены не найдены"
                     }
                 } else {
                     _loginResult.value = "Ошибка входа: ${response.errorBody()?.string()}"
@@ -71,7 +85,7 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
-
 }
+
 
 
