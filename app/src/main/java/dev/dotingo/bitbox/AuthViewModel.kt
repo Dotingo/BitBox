@@ -35,14 +35,16 @@ class AuthViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     val cookies = response.headers().values("Set-Cookie")
-                    val accessToken =
-                        cookies.find { it.startsWith("accessToken=") }?.substringBefore(";")
-                    val refreshToken =
-                        cookies.find { it.startsWith("refreshToken=") }?.substringBefore(";")
-                    val cookieHeader = listOfNotNull(accessToken, refreshToken).joinToString("; ")
+                    val accessToken = cookies
+                        .find { it.startsWith("access=") }
+                        ?.substringBefore(";")
+                    val refreshToken = cookies
+                        .find { it.startsWith("refresh=") }
+                        ?.substringBefore(";")
 
-                    if (cookieHeader.isNotBlank()) {
-                        tokenStore.saveCookie(cookieHeader)
+                    if (!accessToken.isNullOrBlank() && !refreshToken.isNullOrBlank()) {
+                        // Сохраняем оба токена одной строкой через "; "
+                        tokenStore.saveCookie("$accessToken; $refreshToken")
                         _registerResult.value = "Успешная регистрация"
                         _authSuccess.value = true
                     } else {
@@ -67,11 +69,16 @@ class AuthViewModel @Inject constructor(
                 val response = authApi.login(LoginRequest(email, password))
                 if (response.isSuccessful) {
                     val cookies = response.headers().values("Set-Cookie")
+                    // Ищем именно accessToken и refreshToken
+                    val access = cookies
+                        .find { it.startsWith("access") }
+                        ?.substringBefore(";")
+                    val refresh = cookies
+                        .find { it.startsWith("refresh=") }
+                        ?.substringBefore(";")
 
-                    val cookieHeader = cookies.joinToString(separator = "; ") { it.substringBefore(";") }
-
-                    if (cookieHeader.isNotBlank()) {
-                        tokenStore.saveCookie(cookieHeader)
+                    if (!access.isNullOrBlank() && !refresh.isNullOrBlank()) {
+                        tokenStore.saveCookie("$access; $refresh")
                         _authSuccess.value = true
                         _loginResult.value = "Вход успешен"
                     } else {

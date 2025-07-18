@@ -16,3 +16,8 @@ data class Storage(
     val defaultRole: String,
     val createdAt: String
 )
+
+data class StorageWithOwner(
+    val storage: Storage,
+    val ownerLogin: String?
+)

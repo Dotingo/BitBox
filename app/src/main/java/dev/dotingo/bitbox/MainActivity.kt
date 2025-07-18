@@ -29,19 +29,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dev.dotingo.bitbox.data.EncryptedTokenStore
+import dev.dotingo.bitbox.navigation.LoginScreenNav
+import dev.dotingo.bitbox.navigation.StorageScreenNav
 import dev.dotingo.bitbox.navigation.TopAppNavHost
 import dev.dotingo.bitbox.ui.theme.BitBoxTheme
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var tokenStore: EncryptedTokenStore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            BitBoxTheme {
-                TopAppNavHost()
+
+        lifecycleScope.launch {
+            val isLoggedIn = tokenStore.isUserLoggedIn()
+
+            enableEdgeToEdge()
+            setContent {
+                BitBoxTheme {
+                    TopAppNavHost(startDestination = if (isLoggedIn) StorageScreenNav else LoginScreenNav)
+                }
             }
         }
     }

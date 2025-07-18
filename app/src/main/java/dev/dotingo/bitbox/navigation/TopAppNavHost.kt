@@ -18,6 +18,7 @@ import dev.dotingo.bitbox.presentation.StorageScreen
 @Composable
 fun TopAppNavHost(
     modifier: Modifier = Modifier,
+    startDestination: Any,
     navController: NavHostController = rememberNavController()
 ) {
     Box(
@@ -27,12 +28,14 @@ fun TopAppNavHost(
     ) {
         NavHost(
             navController = navController,
-            startDestination = LoginScreenNav
+            startDestination = startDestination
         ) {
             composable<LoginScreenNav> {
                 LoginScreen(
                     navigateToMainScreen = {
-                        navController.navigate(StorageScreenNav)
+                        navController.navigate(StorageScreenNav) {
+                            popUpTo(LoginScreenNav) {inclusive = true}
+                        }
                     },
                     navigateToRegisterScreen = {
                         navController.navigate(RegistrationScreenNav)
@@ -42,7 +45,9 @@ fun TopAppNavHost(
             composable<RegistrationScreenNav> {
                 RegisterScreen(
                     navigateToMainScreen = {
-                        navController.navigate(StorageScreenNav)
+                        navController.navigate(StorageScreenNav){
+                            popUpTo(LoginScreenNav) {inclusive = true}
+                        }
                     },
                     navigateToLoginScreen = {
                         navController.navigate(LoginScreenNav)

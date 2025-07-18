@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 private val Context.encryptedDataStore by preferencesDataStore(
@@ -30,5 +31,9 @@ class EncryptedTokenStore(private val context: Context) {
         context.encryptedDataStore.edit {
             it.remove(COOKIE_KEY)
         }
+    }
+
+    suspend fun isUserLoggedIn(): Boolean {
+        return cookieFlow.firstOrNull()?.isNotBlank() == true
     }
 }
