@@ -44,6 +44,9 @@ android {
 
 dependencies {
 
+    implementation("com.caverock:androidsvg:1.4")
+    implementation(libs.coil.compose)
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)

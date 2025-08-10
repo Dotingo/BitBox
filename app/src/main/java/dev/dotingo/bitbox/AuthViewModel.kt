@@ -1,12 +1,10 @@
 package dev.dotingo.bitbox
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.dotingo.bitbox.data.EncryptedTokenStore
-import dev.dotingo.bitbox.model.ApiClient
 import dev.dotingo.bitbox.model.AuthApi
 import dev.dotingo.bitbox.model.LoginRequest
 import dev.dotingo.bitbox.model.RegisterRequest
