@@ -11,7 +11,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import dev.dotingo.bitbox.presentation.EntitiesScreen
 import dev.dotingo.bitbox.presentation.LoginScreen
+import dev.dotingo.bitbox.presentation.ProfileScreen
 import dev.dotingo.bitbox.presentation.RegisterScreen
 import dev.dotingo.bitbox.presentation.StorageScreen
 
@@ -34,28 +37,62 @@ fun TopAppNavHost(
                 LoginScreen(
                     navigateToMainScreen = {
                         navController.navigate(StorageScreenNav) {
-                            popUpTo(LoginScreenNav) {inclusive = true}
+                            launchSingleTop = true
+                            popUpTo(LoginScreenNav) { inclusive = true }
                         }
                     },
                     navigateToRegisterScreen = {
-                        navController.navigate(RegistrationScreenNav)
+                        navController.navigate(RegistrationScreenNav) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
             composable<RegistrationScreenNav> {
                 RegisterScreen(
                     navigateToMainScreen = {
-                        navController.navigate(StorageScreenNav){
-                            popUpTo(LoginScreenNav) {inclusive = true}
+                        navController.navigate(StorageScreenNav) {
+                            launchSingleTop = true
+                            popUpTo(LoginScreenNav) { inclusive = true }
                         }
                     },
                     navigateToLoginScreen = {
-                        navController.navigate(LoginScreenNav)
+                        navController.navigate(LoginScreenNav) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
             composable<StorageScreenNav> {
-                StorageScreen()
+                StorageScreen(
+                    navigateToEntitiesScreen = { storageId, storageName ->
+                        navController.navigate(EntitiesScreenNav(storageId, storageName)) {
+                            launchSingleTop = true
+                        }
+                    },
+                    navigateToProfileScreen = {
+                        navController.navigate(ProfileScreenNav) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            composable<EntitiesScreenNav> { navEntry ->
+                val storageId = navEntry.toRoute<EntitiesScreenNav>().storageId
+                val storageName = navEntry.toRoute<EntitiesScreenNav>().storageName
+                EntitiesScreen(
+                    storageId = storageId,
+                    storageName = storageName,
+                    navigateBack = {
+                        navigateBack(navController)
+                    })
+            }
+
+            composable<ProfileScreenNav> {
+                ProfileScreen(navigateBack = {
+                    navigateBack(navController)
+                })
             }
         }
     }

@@ -10,5 +10,8 @@ data class UserProfile(
     val avatar: String?,
     val role: String,
     @SerializedName("prefered_contacts") val preferredContacts: String?,
-    val isCreator: Boolean
+    val isCreator: Boolean,
+    val lastname: String?,
+    val name: String?,
+    val telegram: String?
 )

@@ -6,15 +6,17 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.dotingo.bitbox.model.AuthApi
 import dev.dotingo.bitbox.model.StorageWithOwner
+import dev.dotingo.bitbox.model.UserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class StorageViewModel @Inject constructor(
-    private val api: AuthApi // или StorageApi, если разделено
-) : ViewModel() {
+class ProfileViewModel @Inject constructor(private val api: AuthApi) : ViewModel() {
+
+    private val _profile = MutableStateFlow<UserProfile?>(null)
+    val profile: StateFlow<UserProfile?> = _profile
 
     private val _storages = MutableStateFlow<List<StorageWithOwner>>(emptyList())
     val storages: StateFlow<List<StorageWithOwner>> = _storages
@@ -22,19 +24,29 @@ class StorageViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing
-
-
-    fun loadStorages() {
+    fun loadProfile() {
         viewModelScope.launch {
-            _isRefreshing.value = true  // 🔹 запускаем индикатор
-
             try {
-                val response = api.getStorages()
+                val response = api.getProfile()
+                if (response.isSuccessful) {
+                    _profile.value = response.body()
+                    getUserStorages(_profile.value?.id ?: "")
+                } else {
+                    Log.e("AuthViewModel", "Ошибка профиля: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Ошибка запроса профиля", e)
+            }
+        }
+    }
+
+    private fun getUserStorages(userId: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("ProfileViewModel", "Запрашиваю хранилища для userId=$userId")
+                val response = api.getUserStorages(userId)
                 if (response.isSuccessful) {
                     val storagesList = response.body() ?: emptyList()
-
                     val storagesWithOwners = storagesList.map { storage ->
                         val ownerLogin = getUserLoginById(storage.owner)
                         StorageWithOwner(storage, ownerLogin)
@@ -47,8 +59,9 @@ class StorageViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _error.value = "Ошибка: ${e.localizedMessage ?: "Неизвестная ошибка"}"
+                    Log.d("ProfileViewModel", "${e.localizedMessage}")
             } finally {
-                _isRefreshing.value = false // 🔹 выключаем индикатор
+
             }
         }
     }

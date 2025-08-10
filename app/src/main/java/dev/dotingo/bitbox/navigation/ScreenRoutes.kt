@@ -10,3 +10,9 @@ object LoginScreenNav
 
 @Serializable
 object StorageScreenNav
+
+@Serializable
+object ProfileScreenNav
+
+@Serializable
+data class EntitiesScreenNav(val storageId: String, val storageName: String)
